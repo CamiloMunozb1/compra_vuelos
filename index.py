@@ -1,7 +1,7 @@
 from funciones.registro_usuario import ConexionDB, RegistroUsuario
 
 
-ruta_db = r"TU_BASE_DATOS"
+ruta_db = r"C:\Users\POWER\reserva_vuelo.db"
 conexion = ConexionDB(ruta_db)
 
 while True:

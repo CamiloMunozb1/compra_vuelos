@@ -1,5 +1,6 @@
 import sqlite3
 import bcrypt
+from cryptography.fernet import Fernet
 import re
 
 class ConexionDB:
@@ -18,7 +19,7 @@ class IngresoUsuario:
     def __init__(self,conexion):
         self.conexion = conexion
         self.password_id = None
-        self.opciones
+        self.opciones_usuario()
     
     def ingreso_usuario(self):
         try:
@@ -65,3 +66,59 @@ class IngresoUsuario:
             print(f"Error en la base de datos: {error}")
         except Exception as error:
             print(f"Error en el progrma: {error}.")
+
+    def opciones_usuario(self):
+        self.opciones = {
+            "1" : self.opcion_uno,
+            "2" : self.opcion_dos,
+            "3" : self.opcion_tres
+        }
+    
+    def mostras_opciones(self):
+        print("""
+            Ingresa la opcion que desees:
+            1. Ingresa tu tarjeta de credito.
+            2. Reserva tu vuelo.
+            3. Cerrar sesion.
+        """)
+    
+    def seleccionar_opcion(self):
+        try:
+            while True:
+                usuario = str(input("Ingresa la opcion que desees: ")).strip()
+                if not usuario:
+                    print("Debes seleccionar una opcion.")
+                    continue
+                accion = self.opciones.get(usuario)
+                if accion:
+                    accion()
+                    if accion == "5":
+                        break
+                else:
+                    print("Ingresa por favor una opcion del 1 al 3.")
+        except ValueError:
+            print("Error de digitacion, ingresa una opcion correcta.")
+    
+    def ingreso_tarjeta(self):
+        try:
+
+            numero_tarjeta = input("Ingresa tu pan de tarjeta: ").strip()
+            fecha_vencimiento = input("Ingresa la fecha de vencimiento de tu tarjeta: ").strip()
+            codigo_seguridad = input("Ingresa el codigo de seguridad de tu tarjeta: ").strip()
+
+
+            validador_tarjeta = r"^(?:4[0-9]{12}(?:[0-9]{3})?|5[1-5][0-9]{14}|3[47][0-9]{13}|6(?:011|5[0-9]{2})[0-9]{12}|3(?:0[0-5]|[68][0-9])[0-9]{11}|(?:2131|1800|35\d{3})\d{11})$"
+            validador_vencimiento = r"^(0[1-9]|1[0-2])\/\d{2}$"
+            validador_cvv = r"^\d{3,4}$"
+
+            if not all([numero_tarjeta,fecha_vencimiento,codigo_seguridad]):
+                print("Los campos deben estar completos.")
+            if not re.fullmatch(validador_tarjeta,numero_tarjeta):
+                print("El formato de la tarjeta no es valido.")
+                return
+            if not re.fullmatch(validador_vencimiento,fecha_vencimiento):
+                print("La fecha de vencimiento es invalida.")
+                return
+            if not re.fullmatch(validador_cvv,codigo_seguridad):
+                print("El codigo de seguridad no es valido.")
+                return
