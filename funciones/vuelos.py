@@ -111,6 +111,7 @@ class IngresoUsuario:
             validador_vencimiento = r"^(0[1-9]|1[0-2])\/\d{2}$"
             validador_cvv = r"^\d{3,4}$"
 
+
             if not all([numero_tarjeta,fecha_vencimiento,codigo_seguridad]):
                 print("Los campos deben estar completos.")
             if not re.fullmatch(validador_tarjeta,numero_tarjeta):
@@ -122,3 +123,23 @@ class IngresoUsuario:
             if not re.fullmatch(validador_cvv,codigo_seguridad):
                 print("El codigo de seguridad no es valido.")
                 return
+            
+            self.conexion.cursor.execute("SELECT 1 FROM usuario WHERE numero_tarjeta = ?",(numero_tarjeta,))
+            if self.conexion.cursor.fetchone():
+                print("Tarjeta ya ingresada.")
+                return
+            
+            key = Fernet.generate_key()
+            cipher = Fernet(key)
+            encrypted_pan = cipher.encrypt(numero_tarjeta.encode())
+            encrypted_expired = cipher.encrypt(fecha_vencimiento.encode())
+            encrypted_cvv = cipher.encrypt(codigo_seguridad.encode())
+            
+            self.conexion.cursor.execute("INSERT INTO tarjeta_usuario(numero_tarjeta,fecha_vencimiento,codigo_seguridad) VALUES(?,?,?)",(encrypted_pan,encrypted_expired,encrypted_cvv))
+            self.conexion.conn.commit()
+            print("Tarjeta ingresada de manera correcta.")
+        
+        except sqlite3 as error:
+            print(f"Error en la base de datos: {error}")
+        except Exception as error:
+            print(f"Error en el programa: {error}.")
