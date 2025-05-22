@@ -99,7 +99,7 @@ class IngresoUsuario:
         except ValueError:
             print("Error de digitacion, ingresa una opcion correcta.")
     
-    def ingreso_tarjeta(self):
+    def ingreso_tarjeta(self, password_id):
         try:
 
             numero_tarjeta = input("Ingresa tu pan de tarjeta: ").strip()
@@ -141,5 +141,26 @@ class IngresoUsuario:
         
         except sqlite3 as error:
             print(f"Error en la base de datos: {error}")
+        except Exception as error:
+            print(f"Error en el programa: {error}.")
+    
+    def reservar_vuelo(self, password_id):
+        try:
+
+            pais_origen = input("Ingresa tu pais de origen: ").strip()
+            pais_destino = input("Ingresa el pais destino: ").strip()
+            fecha_vuelo = input("Ingresa la fecha de vuelo: ").strip()
+            fecha_regreso = input("Ingresa la fecha de regreso: ").strip()
+
+            if not all([pais_origen,pais_destino,fecha_vuelo,fecha_regreso]):
+                print("Todos los datos deben estar completos.")
+                return
+            
+            self.conexion.cursor.execute("INSERT INTO reserva_vuelos(pais_origen, pais_destino, fecha_vuelo, fecha_regreso) VALUES(?,?,?,?)",(pais_origen,pais_destino,fecha_vuelo,fecha_regreso))
+            self.conexion.conn.commit()
+            print("Reserva de vuelo ingresado exitosamente.")
+        
+        except sqlite3 as error:
+            print(f"Error en la base de datos: {error}.")
         except Exception as error:
             print(f"Error en el programa: {error}.")
