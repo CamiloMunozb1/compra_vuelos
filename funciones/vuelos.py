@@ -2,6 +2,7 @@ import sqlite3
 import bcrypt
 from cryptography.fernet import Fernet
 import re
+import pandas as pd
 
 class ConexionDB:
     def __init__(self, ruta_db):
@@ -164,3 +165,24 @@ class IngresoUsuario:
             print(f"Error en la base de datos: {error}.")
         except Exception as error:
             print(f"Error en el programa: {error}.")
+    
+    def mostrar_vuelos(self, password_id):
+        try:
+            query = """
+                    SELECT 
+                    email_user.usuario,
+                    pais_origen.reserva_vuelos,
+                    fecha_vuelo.reserva_vuelos,
+                    pais_destino.reserva_vuelos,
+                    fecha_regreso.reserva_vuelos
+                FROM usuario
+                WHERE usuario_id
+                """
+            resultado_df = pd.read_sql_query(query, self.conexion.conn, params=(password_id))
+            if not resultado_df.empty:
+                print(resultado_df)
+            else:
+                print("No se encontraron vuelos o el usuario.")
+        
+        except sqlite3.Error as error:
+            print(f"Error en la base de datos: {error}.")

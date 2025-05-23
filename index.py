@@ -1,7 +1,7 @@
 from funciones.registro_usuario import ConexionDB, RegistroUsuario
 
 
-ruta_db = r"TU_BASE_DATOS"
+ruta_db = r"C:\Users\POWER\reserva_vuelo.db"
 conexion = ConexionDB(ruta_db)
 
 while True:
@@ -9,8 +9,7 @@ while True:
         Bienvenido a su pagina de compra
         de tickes de vuelos:
         1. Crear un usuario.
-        2. Ingresa para consultar vuelos.
-        3. salir
+        2. salir
     """)
     try:
         usuario = str(input("Ingresa la opcion que desees: ")).strip()
@@ -21,8 +20,6 @@ while True:
             registro = RegistroUsuario(conexion)
             registro.nuevo_usuario()
         elif usuario == "2":
-            print("Proxima funcionalidad.")
-        elif usuario == "3":
             print("Gracias por preferirnos.")
             break
         else:
