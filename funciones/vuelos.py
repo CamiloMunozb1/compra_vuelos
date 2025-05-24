@@ -136,7 +136,7 @@ class IngresoUsuario:
             encrypted_expired = cipher.encrypt(fecha_vencimiento.encode())
             encrypted_cvv = cipher.encrypt(codigo_seguridad.encode())
             
-            self.conexion.cursor.execute("INSERT INTO tarjeta_usuario(numero_tarjeta,fecha_vencimiento,codigo_seguridad) VALUES(?,?,?)",(encrypted_pan,encrypted_expired,encrypted_cvv))
+            self.conexion.cursor.execute("INSERT INTO tarjeta_usuario(numero_tarjeta,fecha_vencimiento,codigo_seguridad,password_id) VALUES(?,?,?,?)",(encrypted_pan,encrypted_expired,encrypted_cvv,password_id))
             self.conexion.conn.commit()
             print("Tarjeta ingresada de manera correcta.")
         
@@ -157,7 +157,7 @@ class IngresoUsuario:
                 print("Todos los datos deben estar completos.")
                 return
             
-            self.conexion.cursor.execute("INSERT INTO reserva_vuelos(pais_origen, pais_destino, fecha_vuelo, fecha_regreso) VALUES(?,?,?,?)",(pais_origen,pais_destino,fecha_vuelo,fecha_regreso))
+            self.conexion.cursor.execute("INSERT INTO reserva_vuelos(pais_origen, pais_destino, fecha_vuelo, fecha_regreso, password_id) VALUES(?,?,?,?,?)",(pais_origen,pais_destino,fecha_vuelo,fecha_regreso,password_id))
             self.conexion.conn.commit()
             print("Reserva de vuelo ingresado exitosamente.")
         
@@ -186,3 +186,21 @@ class IngresoUsuario:
         
         except sqlite3.Error as error:
             print(f"Error en la base de datos: {error}.")
+    
+    def opcion_uno(self):
+        if not self.password_id:
+            password_id = self.ingreso_usuario()
+            if not password_id:
+                return
+        else:
+            password_id = self.password_id
+        self.ingreso_tarjeta(password_id)
+    
+    def opcion_dos(self):
+        if not self.password_id:
+            password_id = self.ingreso_usuario()
+            if not password_id:
+                return
+        else:
+            password_id = self.password_id
+        self.reservar_vuelo(password_id)
