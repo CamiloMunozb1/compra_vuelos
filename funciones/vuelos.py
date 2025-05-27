@@ -25,8 +25,8 @@ class IngresoUsuario:
     def ingreso_usuario(self):
         try:
             
-            email_user = str(input("Ingresa tu correo electronico: ")).strip()
-            contraseña_user = int(input("Ingresa tu contraseña: "))
+            email_user = input("Ingresa tu correo electronico: ").strip()
+            contraseña_user = input("Ingresa tu contraseña: ").strip()
 
             validador_contraseña = r"^[a-zA-Z0-9@#$%^&+=]{6,}$"
             validador_email =  r"[a-zA-Z-0-9]+@[a-zA-Z]+\.[a-z-.]+$"
@@ -35,10 +35,10 @@ class IngresoUsuario:
             if not all([email_user,contraseña_user]):
                 print("Los campos deben estar completos.")
                 return
-            elif re.fullmatch(validador_email,email_user):
+            elif not re.fullmatch(validador_email,email_user):
                 print("Ingreso del email invalido, volver a intentar.")
                 return
-            elif re.fullmatch(validador_contraseña, contraseña_user):
+            elif not re.fullmatch(validador_contraseña, contraseña_user):
                 print("Ingreso de contraseña invalido, volver a intentar.")
                 return
             
@@ -46,16 +46,17 @@ class IngresoUsuario:
             self.conexion.cursor.execute("SELECT contraseña_user FROM usuario WHERE email_user = ?",(email_user,))
             contraseña = self.conexion.cursor.fetchone()
             if contraseña:
-                contraseña_user = contraseña[0]
-                while intentos_contraseña < 0:
-                    if bcrypt.checkpw(contraseña_user.encode("utf-8"),contraseña_user):
+                contraseña_hashed = contraseña[0]
+                intentos_contraseña = 3
+                while intentos_contraseña > 0:
+                    if bcrypt.checkpw(contraseña_user.encode("utf-8"),contraseña_hashed):
                         print("Sesion iniciada...")
                         self.password_id = contraseña_user
                         return contraseña_user
                     else:
                         intentos_contraseña -= 1
                         print(f"Contraseña incorrecta, te quedan {intentos_contraseña}.")
-                        if intentos_contraseña < 0:
+                        if intentos_contraseña > 0:
                             contraseña_user = str(input("Vuelve a ingresar tu contraseña: "))
                 print("Se agotaron los intentos...")
                 return None
@@ -63,7 +64,7 @@ class IngresoUsuario:
                 print("Usuario no entontrado.")
                 return
             
-        except sqlite3 as error:
+        except sqlite3.Error as error:
             print(f"Error en la base de datos: {error}")
         except Exception as error:
             print(f"Error en el progrma: {error}.")
@@ -80,12 +81,14 @@ class IngresoUsuario:
             Ingresa la opcion que desees:
             1. Ingresa tu tarjeta de credito.
             2. Reserva tu vuelo.
-            3. Cerrar sesion.
+            3. Mostrar vuelos.
+            4. Cerrar sesion.
         """)
     
     def seleccionar_opcion(self):
         try:
             while True:
+                self.mostras_opciones()
                 usuario = str(input("Ingresa la opcion que desees: ")).strip()
                 if not usuario:
                     print("Debes seleccionar una opcion.")
@@ -93,14 +96,14 @@ class IngresoUsuario:
                 accion = self.opciones.get(usuario)
                 if accion:
                     accion()
-                    if accion == "5":
+                    if accion == "4":
                         break
                 else:
                     print("Ingresa por favor una opcion del 1 al 3.")
         except ValueError:
             print("Error de digitacion, ingresa una opcion correcta.")
     
-    def ingreso_tarjeta(self, password_id):
+    def ingreso_tarjeta(self, usuario_id):
         try:
 
             numero_tarjeta = input("Ingresa tu pan de tarjeta: ").strip()
@@ -108,7 +111,7 @@ class IngresoUsuario:
             codigo_seguridad = input("Ingresa el codigo de seguridad de tu tarjeta: ").strip()
 
 
-            validador_tarjeta = r"^(?:4[0-9]{12}(?:[0-9]{3})?|5[1-5][0-9]{14}|3[47][0-9]{13}|6(?:011|5[0-9]{2})[0-9]{12}|3(?:0[0-5]|[68][0-9])[0-9]{11}|(?:2131|1800|35\d{3})\d{11})$"
+            validador_tarjeta = r"^(?:23[0-9]{14}|4[0-9]{12}(?:[0-9]{3})?|5[1-5][0-9]{14}|3[47][0-9]{13}|6(?:011|5[0-9]{2})[0-9]{12})$"
             validador_vencimiento = r"^(0[1-9]|1[0-2])\/\d{2}$"
             validador_cvv = r"^\d{3,4}$"
 
@@ -125,7 +128,7 @@ class IngresoUsuario:
                 print("El codigo de seguridad no es valido.")
                 return
             
-            self.conexion.cursor.execute("SELECT 1 FROM usuario WHERE numero_tarjeta = ?",(numero_tarjeta,))
+            self.conexion.cursor.execute("SELECT 1 FROM tarjeta_usuario WHERE numero_tarjeta = ?",(numero_tarjeta,))
             if self.conexion.cursor.fetchone():
                 print("Tarjeta ya ingresada.")
                 return
@@ -136,7 +139,7 @@ class IngresoUsuario:
             encrypted_expired = cipher.encrypt(fecha_vencimiento.encode())
             encrypted_cvv = cipher.encrypt(codigo_seguridad.encode())
             
-            self.conexion.cursor.execute("INSERT INTO tarjeta_usuario(numero_tarjeta,fecha_vencimiento,codigo_seguridad,password_id) VALUES(?,?,?,?)",(encrypted_pan,encrypted_expired,encrypted_cvv,password_id))
+            self.conexion.cursor.execute("INSERT INTO tarjeta_usuario(numero_tarjeta,fecha_vencimiento,codigo_seguridad,usuario_id) VALUES(?,?,?,?)",(encrypted_pan,encrypted_expired,encrypted_cvv,usuario_id))
             self.conexion.conn.commit()
             print("Tarjeta ingresada de manera correcta.")
         
@@ -145,7 +148,7 @@ class IngresoUsuario:
         except Exception as error:
             print(f"Error en el programa: {error}.")
     
-    def reservar_vuelo(self, password_id):
+    def reservar_vuelo(self, usuario_id):
         try:
 
             pais_origen = input("Ingresa tu pais de origen: ").strip()
@@ -157,7 +160,7 @@ class IngresoUsuario:
                 print("Todos los datos deben estar completos.")
                 return
             
-            self.conexion.cursor.execute("INSERT INTO reserva_vuelos(pais_origen, pais_destino, fecha_vuelo, fecha_regreso, password_id) VALUES(?,?,?,?,?)",(pais_origen,pais_destino,fecha_vuelo,fecha_regreso,password_id))
+            self.conexion.cursor.execute("INSERT INTO reserva_vuelos(pais_origen, pais_destino, fecha_vuelo, fecha_regreso, usuario_id) VALUES(?,?,?,?,?)",(pais_origen,pais_destino,fecha_vuelo,fecha_regreso,usuario_id))
             self.conexion.conn.commit()
             print("Reserva de vuelo ingresado exitosamente.")
         
@@ -204,3 +207,16 @@ class IngresoUsuario:
         else:
             password_id = self.password_id
         self.reservar_vuelo(password_id)
+    
+    def opcion_tres(self):
+        if not self.password_id:
+            password_id = self.ingreso_usuario()
+            if not password_id:
+                return
+        else:
+            password_id = self.password_id
+        self.mostrar_vuelos(password_id)
+    
+    def opcion_cuatro(self):
+        self.password_id = False
+        print("Sesion cerrada.")
