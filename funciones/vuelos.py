@@ -143,7 +143,7 @@ class IngresoUsuario:
             self.conexion.conn.commit()
             print("Tarjeta ingresada de manera correcta.")
         
-        except sqlite3 as error:
+        except sqlite3.Error as error:
             print(f"Error en la base de datos: {error}")
         except Exception as error:
             print(f"Error en el programa: {error}.")
@@ -164,7 +164,7 @@ class IngresoUsuario:
             self.conexion.conn.commit()
             print("Reserva de vuelo ingresado exitosamente.")
         
-        except sqlite3 as error:
+        except sqlite3.Error as error:
             print(f"Error en la base de datos: {error}.")
         except Exception as error:
             print(f"Error en el programa: {error}.")

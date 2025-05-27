@@ -50,7 +50,7 @@ class RegistroUsuario:
             self.conexion.conn.commit()
             print("Datos ingresados correctamente.")
         
-        except sqlite3 as error:
+        except sqlite3.Error as error:
             print(f"Error en la base de datos: {error}.")
         except Exception as error:
             print(f"Error en el programa: {error}.")
