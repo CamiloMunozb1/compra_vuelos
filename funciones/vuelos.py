@@ -19,7 +19,7 @@ class ConexionDB:
 class IngresoUsuario:
     def __init__(self,conexion):
         self.conexion = conexion
-        self.password_id = None
+        self.usuario_id = None
         self.opciones_usuario()
     
     def ingreso_usuario(self):
@@ -43,16 +43,16 @@ class IngresoUsuario:
                 return
             
             
-            self.conexion.cursor.execute("SELECT contraseña_user FROM usuario WHERE email_user = ?",(email_user,))
-            contraseña = self.conexion.cursor.fetchone()
-            if contraseña:
-                contraseña_hashed = contraseña[0]
+            self.conexion.cursor.execute("SELECT usuario_id, contraseña_user FROM usuario WHERE email_user = ?",(email_user,))
+            usuario = self.conexion.cursor.fetchone()
+            if usuario:
+                usuario_id, contraseña_hashed = usuario
                 intentos_contraseña = 3
                 while intentos_contraseña > 0:
                     if bcrypt.checkpw(contraseña_user.encode("utf-8"),contraseña_hashed):
                         print("Sesion iniciada...")
-                        self.password_id = contraseña_user
-                        return contraseña_user
+                        self.usuario_id = usuario_id
+                        return usuario_id
                     else:
                         intentos_contraseña -= 1
                         print(f"Contraseña incorrecta, te quedan {intentos_contraseña}.")
@@ -73,7 +73,8 @@ class IngresoUsuario:
         self.opciones = {
             "1" : self.opcion_uno,
             "2" : self.opcion_dos,
-            "3" : self.opcion_tres
+            "3" : self.opcion_tres,
+            "4" : self.opcion_cuatro
         }
     
     def mostras_opciones(self):
@@ -99,7 +100,7 @@ class IngresoUsuario:
                     if accion == "4":
                         break
                 else:
-                    print("Ingresa por favor una opcion del 1 al 3.")
+                    print("Ingresa por favor una opcion del 1 al 4.")
         except ValueError:
             print("Error de digitacion, ingresa una opcion correcta.")
     
@@ -151,8 +152,8 @@ class IngresoUsuario:
     def reservar_vuelo(self, usuario_id):
         try:
 
-            pais_origen = input("Ingresa tu pais de origen: ").strip()
-            pais_destino = input("Ingresa el pais destino: ").strip()
+            pais_origen = input("Ingresa tu ciudad de origen: ").strip()
+            pais_destino = input("Ingresa el ciudad destino: ").strip()
             fecha_vuelo = input("Ingresa la fecha de vuelo: ").strip()
             fecha_regreso = input("Ingresa la fecha de regreso: ").strip()
 
@@ -169,19 +170,20 @@ class IngresoUsuario:
         except Exception as error:
             print(f"Error en el programa: {error}.")
     
-    def mostrar_vuelos(self, password_id):
+    def mostrar_vuelos(self, usuario_id):
         try:
             query = """
                     SELECT 
-                    email_user.usuario,
-                    pais_origen.reserva_vuelos,
-                    fecha_vuelo.reserva_vuelos,
-                    pais_destino.reserva_vuelos,
-                    fecha_regreso.reserva_vuelos
+                    usuario.email_user,
+                    reserva_vuelos.pais_origen,
+                    reserva_vuelos.fecha_vuelo,
+                    reserva_vuelos.pais_destino,
+                    reserva_vuelos.fecha_regreso
                 FROM usuario
-                WHERE usuario_id
+                JOIN reserva_vuelos ON usuario.usuario_id = reserva_vuelos.usuario_id
+                WHERE usuario.usuario_id = ?
                 """
-            resultado_df = pd.read_sql_query(query, self.conexion.conn, params=(password_id))
+            resultado_df = pd.read_sql_query(query, self.conexion.conn, params=(usuario_id,))
             if not resultado_df.empty:
                 print(resultado_df)
             else:
@@ -191,32 +193,34 @@ class IngresoUsuario:
             print(f"Error en la base de datos: {error}.")
     
     def opcion_uno(self):
-        if not self.password_id:
-            password_id = self.ingreso_usuario()
-            if not password_id:
+        if not self.usuario_id:
+            usuario_id = self.ingreso_usuario()
+            if not usuario_id:
                 return
         else:
-            password_id = self.password_id
-        self.ingreso_tarjeta(password_id)
+            usuario_id = self.usuario_id
+        self.ingreso_tarjeta(usuario_id)
     
     def opcion_dos(self):
-        if not self.password_id:
-            password_id = self.ingreso_usuario()
-            if not password_id:
+        if not self.usuario_id:
+            usuario_id = self.ingreso_usuario()
+            if not usuario_id:
                 return
         else:
-            password_id = self.password_id
-        self.reservar_vuelo(password_id)
+            usuario_id = self.usuario_id
+        self.reservar_vuelo(usuario_id)
     
     def opcion_tres(self):
-        if not self.password_id:
-            password_id = self.ingreso_usuario()
-            if not password_id:
+        if not self.usuario_id:
+            usuario_id = self.ingreso_usuario()
+            if not usuario_id:
                 return
         else:
-            password_id = self.password_id
-        self.mostrar_vuelos(password_id)
+            usuario_id = self.usuario_id
+        self.mostrar_vuelos(usuario_id)
+    
     
     def opcion_cuatro(self):
-        self.password_id = False
+        self.usuario_id = False
         print("Sesion cerrada.")
+        exit()

@@ -2,7 +2,7 @@ from funciones.registro_usuario import ConexionDB, RegistroUsuario
 from funciones.vuelos import ConexionDB, IngresoUsuario
 
 
-ruta_db = r"C:\Users\POWER\reserva_vuelo.db"
+ruta_db = r"TU_RUTA_DB"
 conexion = ConexionDB(ruta_db)
 
 while True:
@@ -11,7 +11,7 @@ while True:
         de tickes de vuelos:
         1. Crear un usuario.
         2. Iniciar sesion.
-        2. salir
+        3. salir
     """)
     try:
         usuario = str(input("Ingresa la opcion que desees: ")).strip()
@@ -26,6 +26,9 @@ while True:
             password_id = login.ingreso_usuario()
             if password_id:
                 login.seleccionar_opcion()
+        elif usuario == "3":
+            print("Gracias por visitar a su aerolinia de confianza.")
+            break
         else:
             print("Ingresar un valor valido de 1-3")
         

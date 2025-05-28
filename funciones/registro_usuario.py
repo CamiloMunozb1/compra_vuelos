@@ -22,7 +22,7 @@ class RegistroUsuario:
             nombre_usuario = input("Ingresa tu nombre: ").strip()
             apellido_usuario = input("Ingresa tu apellido de usuario: ").strip()
             nacimiento_user = input("Ingresa tu fecha de nacimiento (dd/mm/yyyy): ").strip()
-            email_user = input("Ingresa tu correo electroico: ").strip()
+            email_user = input("Ingresa tu correo electronico: ").strip()
             contraseña_user = input("Crea una contraseña (maximo 6 caracteres): ").strip()
 
             validador_contraseña = r"^[a-zA-Z0-9@#$%^&+=]{6,}$"
